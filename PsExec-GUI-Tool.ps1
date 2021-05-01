@@ -15,22 +15,68 @@ $ItemWidth = $LabelWidth + $BoxWidth
 $ItemHeight = 25
 $ListBoxHeight = 400
 $ProgressBarHeight = 25
-$ButtonWidth = 120
 $ButtonHeight = 35
 
 $MainFormWidth = $ItemWidth + ($MarginSize * 2)
-$MainFormHeight = ($ItemHeight * 3) + $ListBoxHeight + ($Separator * 4) + $ProgressBarHeight + $ButtonHeight + ($MarginSize * 3)
+$MainFormHeight = ($ItemHeight * 4) + $ListBoxHeight + ($Separator * 5) + $ProgressBarHeight + $ButtonHeight + ($MarginSize * 3)
 $BoxPosition = $MarginSize + $LabelWidth
-$RunItemPosition = $MarginSize
+$UsingItemPosition = $MarginSize
+$RunItemPosition = $UsingItemPosition + $Separator + $ItemHeight
 $ScriptItemPosition = $RunItemPosition + $Separator + $ItemHeight
 $ComputerListItemPosition = $ScriptItemPosition + $Separator + $ItemHeight
 $ListBoxPosition = $ComputerListItemPosition + $Separator + $ItemHeight
-$ProgressBarPosition = $ComputerListBox + $Separator + $ListBoxHeight
+$ProgressBarPosition = $ListBoxPosition + $Separator + $ListBoxHeight
 $ButtonPosition = $ProgressBarPosition + $MarginSize + $ProgressBarHeight
+$ButtonWidth = ($ItemWidth - ($MarginSize * 2)) / 3
 
 #-----------------------------------------------------------[Functions]------------------------------------------------------------
 
+<#
+.SYNOPSIS
+Short description
 
+.DESCRIPTION
+Long description
+
+.PARAMETER FileName
+Parameter description
+
+.PARAMETER FileExtension
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+#>
+function Open-FileDialog {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true,
+                   Position = 0,
+                   ValueFromPipeline = $false,
+                   ValueFromPipelineByPropertyName = $true,
+                   HelpMessage = "")]
+        [string]
+        $Name,
+
+        [Parameter(Mandatory = $true,
+                   Position = 1,
+                   ValueFromPipeline = $false,
+                   ValueFromPipelineByPropertyName = $true,
+                   HelpMessage = "")]
+        [string]
+        $FileExtension
+    )
+    process {
+        $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
+        $OpenFileDialog.InitialDirectory = [Environment]::GetFolderPath("Desktop")
+        $OpenFileDialog.Filter = "$Name Files (*.$FileExtension)| *.$FileExtension*"
+        $OpenFileDialog.ShowDialog() | Out-Null
+        return $OpenFileDialog.Filename
+    }
+}
 
 #-----------------------------------------------------------[Execution]------------------------------------------------------------
 
@@ -46,6 +92,40 @@ $MainForm.MaximizeBox = $false
 $MainForm.ShowIcon = $false
 $MainForm.BackColor = $FormBackgroundColor
 $MainForm.ForeColor = $FormForegroundColor
+
+$UsingLabel = New-Object system.Windows.Forms.Label
+$UsingLabel.Text = "  Using"
+$UsingLabel.Width = $LabelWidth
+$UsingLabel.Height = $ItemHeight
+$UsingLabel.Location = New-Object System.Drawing.Point($MarginSize, $UsingItemPosition)
+$UsingLabel.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
+$UsingLabel.TextAlign = "MiddleLeft"
+$UsingLabel.BackColor = $ItemBackgroundColor
+$MainForm.Controls.Add($UsingLabel)
+
+$UsingComboBox = New-Object system.Windows.Forms.ComboBox
+$UsingComboBox.Width = $BoxWidth
+$UsingComboBox.Height = $ItemHeight
+$UsingComboBox.Location = New-Object System.Drawing.Point($BoxPosition, $UsingItemPosition)
+$UsingComboBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
+$UsingComboBox.AutoCompleteMode = 'SuggestAppend'
+$UsingComboBox.AutoCompleteSource = 'ListItems'
+$MainForm.Controls.Add($UsingComboBox)
+
+$UsingComboBox.Items.AddRange(@("PsExec", "Windows PowerShell"))
+
+$UsingComboBox.Add_TextChanged({
+    switch ($UsingComboBox.Text) {
+        "Windows PowerShell" {
+            $RunComboBox.Enabled = $false
+            $RunComboBox.Text = "Windows PowerShell"
+        }
+        Default {
+            $RunComboBox.Enabled = $true
+            $RunComboBox.Text = ""
+        }
+    }
+})
 
 $RunLabel = New-Object system.Windows.Forms.Label
 $RunLabel.Text = "  Run"
@@ -66,6 +146,20 @@ $RunComboBox.AutoCompleteMode = 'SuggestAppend'
 $RunComboBox.AutoCompleteSource = 'ListItems'
 $MainForm.Controls.Add($RunComboBox)
 
+$RunComboBox.Items.AddRange(@("Windows PowerShell", "Windows Batch Script", "gpupdate"))
+
+$RunComboBox.Add_TextChanged({
+    switch ($RunComboBox.Text) {
+        "gpupdate" {
+            $ScriptTextBox.Enabled = $false
+            $ScriptTextBox.Text = ""
+        }
+        Default {
+            $ScriptTextBox.Enabled = $true
+        }
+    }
+})
+
 $ScriptLabel = New-Object system.Windows.Forms.Label
 $ScriptLabel.Text = "  Script"
 $ScriptLabel.Width = $LabelWidth
@@ -78,11 +172,16 @@ $MainForm.Controls.Add($ScriptLabel)
 
 $ScriptTextBox = New-Object system.Windows.Forms.TextBox
 $ScriptTextBox.Multiline = $false
+$ScriptTextBox.ReadOnly = $true
 $ScriptTextBox.Width = $BoxWidth
 $ScriptTextBox.Height = $ItemHeight
 $ScriptTextBox.Location = New-Object System.Drawing.Point($BoxPosition, $ScriptItemPosition)
 $ScriptTextBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $MainForm.Controls.Add($ScriptTextBox)
+
+$ScriptTextBox.Add_Click({
+    $ScriptTextBox.Text = Open-FileDialog -Name "PS1" -FileExtension "ps1"
+})
 
 $ComputerListLabel = New-Object system.Windows.Forms.Label
 $ComputerListLabel.Text = "  Computer List"
@@ -96,6 +195,7 @@ $MainForm.Controls.Add($ComputerListLabel)
 
 $ComputerListTextBox = New-Object system.Windows.Forms.TextBox
 $ComputerListTextBox.Multiline = $false
+$ComputerListTextBox.ReadOnly = $true
 $ComputerListTextBox.Width = $BoxWidth
 $ComputerListTextBox.Height = $ItemHeight
 $ComputerListTextBox.Location = New-Object System.Drawing.Point($BoxPosition, $ComputerListItemPosition)
@@ -115,13 +215,31 @@ $ProgressBar.Style = "Continuous"
 $ProgressBar.MarqueeAnimationSpeed
 $MainForm.Controls.Add($ProgressBar)
 
-$InstallButton = New-Object system.Windows.Forms.Button
-$InstallButton.Text = "Run"
-$InstallButton.Width = $ButtonWidth
-$InstallButton.Height = $ButtonHeight
-$InstallButton.Location = New-Object System.Drawing.Point((($MainFormWidth - $ButtonWidth) / 2), $ButtonPosition)
-$InstallButton.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
-$InstallButton.BackColor = $ItemBackgroundColor
-$MainForm.controls.Add($InstallButton)
+$TestConnectionButton = New-Object system.Windows.Forms.Button
+$TestConnectionButton.Text = "Test Connection"
+$TestConnectionButton.Width = $ButtonWidth
+$TestConnectionButton.Height = $ButtonHeight
+$TestConnectionButton.Location = New-Object System.Drawing.Point($MarginSize, $ButtonPosition)
+$TestConnectionButton.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
+$TestConnectionButton.BackColor = $ItemBackgroundColor
+$MainForm.controls.Add($TestConnectionButton)
+
+$OpenScriptButton = New-Object system.Windows.Forms.Button
+$OpenScriptButton.Text = "Open Script"
+$OpenScriptButton.Width = $ButtonWidth
+$OpenScriptButton.Height = $ButtonHeight
+$OpenScriptButton.Location = New-Object System.Drawing.Point(($MarginSize * 2 + $ButtonWidth), $ButtonPosition)
+$OpenScriptButton.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
+$OpenScriptButton.BackColor = $ItemBackgroundColor
+$MainForm.controls.Add($OpenScriptButton)
+
+$RunButton = New-Object system.Windows.Forms.Button
+$RunButton.Text = "Run"
+$RunButton.Width = $ButtonWidth
+$RunButton.Height = $ButtonHeight
+$RunButton.Location = New-Object System.Drawing.Point(($MarginSize * 3  + ($ButtonWidth * 2)), $ButtonPosition)
+$RunButton.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
+$RunButton.BackColor = $ItemBackgroundColor
+$MainForm.controls.Add($RunButton)
 
 [void]$MainForm.ShowDialog()
