@@ -10,7 +10,7 @@ $FormForegroundColor = "#FFFFFF"
 $MarginSize = 25
 $Separator = 10
 $LabelWidth = 100
-$BoxWidth = 300
+$BoxWidth = 500
 $ItemWidth = $LabelWidth + $BoxWidth
 $ItemHeight = 25
 $ListBoxHeight = 400
@@ -29,55 +29,6 @@ $ProgressBarPosition = $ListBoxPosition + $Separator + $ListBoxHeight
 $ButtonPosition = $ProgressBarPosition + $MarginSize + $ProgressBarHeight
 $ButtonWidth = ($ItemWidth - ($MarginSize * 2)) / 3
 
-#-----------------------------------------------------------[Functions]------------------------------------------------------------
-
-<#
-.SYNOPSIS
-Short description
-
-.DESCRIPTION
-Long description
-
-.PARAMETER FileName
-Parameter description
-
-.PARAMETER FileExtension
-Parameter description
-
-.EXAMPLE
-An example
-
-.NOTES
-General notes
-#>
-function Open-FileDialog {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $false,
-                   ValueFromPipelineByPropertyName = $true,
-                   HelpMessage = "")]
-        [string]
-        $Name,
-
-        [Parameter(Mandatory = $true,
-                   Position = 1,
-                   ValueFromPipeline = $false,
-                   ValueFromPipelineByPropertyName = $true,
-                   HelpMessage = "")]
-        [string]
-        $FileExtension
-    )
-    process {
-        $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
-        $OpenFileDialog.InitialDirectory = [Environment]::GetFolderPath("Desktop")
-        $OpenFileDialog.Filter = "$Name Files (*.$FileExtension)| *.$FileExtension*"
-        $OpenFileDialog.ShowDialog() | Out-Null
-        return $OpenFileDialog.Filename
-    }
-}
-
 #-----------------------------------------------------------[Execution]------------------------------------------------------------
 
 Add-Type -AssemblyName System.Windows.Forms
@@ -86,7 +37,6 @@ Add-Type -AssemblyName System.Windows.Forms
 $MainForm = New-Object system.Windows.Forms.Form
 $MainForm.ClientSize = New-Object System.Drawing.Point($MainFormWidth, $MainFormHeight)
 $MainForm.Text = $ApplicationTitle
-$MainForm.TopMost = $true
 $MainForm.FormBorderStyle = 'Fixed3D'
 $MainForm.MaximizeBox = $false
 $MainForm.ShowIcon = $false
@@ -146,7 +96,7 @@ $RunComboBox.AutoCompleteMode = 'SuggestAppend'
 $RunComboBox.AutoCompleteSource = 'ListItems'
 $MainForm.Controls.Add($RunComboBox)
 
-$RunComboBox.Items.AddRange(@("Windows PowerShell", "Windows Batch Script", "gpupdate"))
+$RunComboBox.Items.AddRange(@("Windows PowerShell Script", "Windows Batch Script", "gpupdate"))
 
 $RunComboBox.Add_TextChanged({
     switch ($RunComboBox.Text) {
@@ -180,7 +130,17 @@ $ScriptTextBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $MainForm.Controls.Add($ScriptTextBox)
 
 $ScriptTextBox.Add_Click({
-    $ScriptTextBox.Text = Open-FileDialog -Name "PS1" -FileExtension "ps1"
+    $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
+    $OpenFileDialog.InitialDirectory = [Environment]::GetFolderPath("Desktop")
+    $OpenFileDialog.Filter = "PS1 Files (*.ps1) | *.ps1"
+    $OpenFileDialog.ShowDialog() | Out-Null
+    $ScriptTextBox.Text =  $OpenFileDialog.Filename
+    if (($ScriptTextBox.Text -like "*ps1") -or ($ScriptTextBox.Text -like "*bat")) {
+        $OpenScriptButton.Enabled = $true
+    }
+    else {
+        $OpenScriptButton.Enabled = $false
+    }
 })
 
 $ComputerListLabel = New-Object system.Windows.Forms.Label
@@ -202,17 +162,27 @@ $ComputerListTextBox.Location = New-Object System.Drawing.Point($BoxPosition, $C
 $ComputerListTextBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $MainForm.Controls.Add($ComputerListTextBox)
 
+$ComputerListTextBox.Add_Click({
+    $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
+    $OpenFileDialog.InitialDirectory = [Environment]::GetFolderPath("Desktop")
+    $OpenFileDialog.Filter = "Text Files (*.txt) | *.txt"
+    $OpenFileDialog.ShowDialog() | Out-Null
+    $ComputerListTextBox.Text =  $OpenFileDialog.Filename
+})
+
 $ListBox = New-Object System.Windows.Forms.ListBox
 $ListBox.Width = $ItemWidth
 $ListBox.Height = $ListBoxHeight
 $ListBox.Location = New-Object System.Drawing.Point($MarginSize, $ListBoxPosition)
+$ListBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 11)
 $MainForm.Controls.Add($ListBox)
 
 $ProgressBar = New-Object System.Windows.Forms.ProgressBar
 $ProgressBar.Location = New-Object System.Drawing.Point($MarginSize, $ProgressBarPosition)
 $ProgressBar.Size = New-Object System.Drawing.Size($ItemWidth, $ProgressBarHeight)
 $ProgressBar.Style = "Continuous"
-$ProgressBar.MarqueeAnimationSpeed
+$ProgressBar.Minimum = 0
+$ProgressBar.Maximum = 10000
 $MainForm.Controls.Add($ProgressBar)
 
 $TestConnectionButton = New-Object system.Windows.Forms.Button
@@ -225,6 +195,7 @@ $TestConnectionButton.BackColor = $ItemBackgroundColor
 $MainForm.controls.Add($TestConnectionButton)
 
 $OpenScriptButton = New-Object system.Windows.Forms.Button
+$OpenScriptButton.Enabled = $false
 $OpenScriptButton.Text = "Open Script"
 $OpenScriptButton.Width = $ButtonWidth
 $OpenScriptButton.Height = $ButtonHeight
@@ -232,6 +203,15 @@ $OpenScriptButton.Location = New-Object System.Drawing.Point(($MarginSize * 2 + 
 $OpenScriptButton.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $OpenScriptButton.BackColor = $ItemBackgroundColor
 $MainForm.controls.Add($OpenScriptButton)
+
+$OpenScriptButton.Add_Click({
+    if ((Test-Path -Path "C:\Program Files\Notepad++") -or (Test-Path -Path "C:\Program Files (x86)\Notepad++")) {
+        Start-Process notepad++ $ScriptTextBox.Text
+    }
+    else {
+        Start-Process notepad $ScriptTextBox.Text
+    }
+})
 
 $RunButton = New-Object system.Windows.Forms.Button
 $RunButton.Text = "Run"
