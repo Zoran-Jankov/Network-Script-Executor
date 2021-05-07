@@ -167,15 +167,27 @@ $ComputerListTextBox.Add_Click({
     $OpenFileDialog.InitialDirectory = [Environment]::GetFolderPath("Desktop")
     $OpenFileDialog.Filter = "Text Files (*.txt) | *.txt"
     $OpenFileDialog.ShowDialog() | Out-Null
-    $ComputerListTextBox.Text =  $OpenFileDialog.Filename
+    $ComputerListTextBox.Text = $OpenFileDialog.Filename
+    $Computers = Get-Content -Path $ComputerListTextBox.Text -Encoding UTF8
+    foreach ($Computer in $Computers) {
+        $Item = New-Object system.Windows.Forms.ListViewItem($Computer)
+        $Item.SubItems.add("Unknown")
+        $Item.SubItems.add("Action Not Executed")
+        $ListBox.Items.Add($Item)
+    }
 })
 
-$ListBox = New-Object System.Windows.Forms.ListBox
+$ListBox = New-Object System.Windows.Forms.ListView
+$ListBox.View = 'Details'
 $ListBox.Width = $ItemWidth
 $ListBox.Height = $ListBoxHeight
 $ListBox.Location = New-Object System.Drawing.Point($MarginSize, $ListBoxPosition)
 $ListBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 11)
 $MainForm.Controls.Add($ListBox)
+
+$ListBox.Columns.Add("Computer", ($ItemWidth / 3))
+$ListBox.Columns.Add("Online Status", ($ItemWidth / 3))
+$ListBox.Columns.Add("Execution Status", ($ItemWidth / 3))
 
 $ProgressBar = New-Object System.Windows.Forms.ProgressBar
 $ProgressBar.Location = New-Object System.Drawing.Point($MarginSize, $ProgressBarPosition)
@@ -193,6 +205,12 @@ $TestConnectionButton.Location = New-Object System.Drawing.Point($MarginSize, $B
 $TestConnectionButton.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $TestConnectionButton.BackColor = $ItemBackgroundColor
 $MainForm.controls.Add($TestConnectionButton)
+
+$TestConnectionButton.Add_Click({
+    foreach ($Item in $ListBox.Items) {
+        $Item.Text("TOJETO")
+    }
+})
 
 $OpenScriptButton = New-Object system.Windows.Forms.Button
 $OpenScriptButton.Enabled = $false
