@@ -1,11 +1,9 @@
 #---------------------------------------------------------[Initialisations]--------------------------------------------------------
 
-[hashtable]$ComputerList
-
 $ApplicationTitle = "PsExec-GUI-Tool"
-$ItemBackgroundColor = "#003F9A"
-$FormBackgroundColor = "#468FEA"
-$FormForegroundColor = "#FFFFFF"
+$ItemBackgroundColor = "#004589"
+$FormBackgroundColor = "#0080FF"
+$FormForegroundColor = "#D8EBFF"
 
 $MarginSize = 25
 $Separator = 10
@@ -13,19 +11,19 @@ $LabelWidth = 100
 $BoxWidth = 500
 $ItemWidth = $LabelWidth + $BoxWidth
 $ItemHeight = 25
-$ListBoxHeight = 400
+$ListViewHeight = 400
 $ProgressBarHeight = 25
 $ButtonHeight = 35
 
 $MainFormWidth = $ItemWidth + ($MarginSize * 2)
-$MainFormHeight = ($ItemHeight * 4) + $ListBoxHeight + ($Separator * 5) + $ProgressBarHeight + $ButtonHeight + ($MarginSize * 3)
+$MainFormHeight = ($ItemHeight * 4) + $ListViewHeight + ($Separator * 5) + $ProgressBarHeight + $ButtonHeight + ($MarginSize * 3)
 $BoxPosition = $MarginSize + $LabelWidth
 $UsingItemPosition = $MarginSize
 $RunItemPosition = $UsingItemPosition + $Separator + $ItemHeight
 $ScriptItemPosition = $RunItemPosition + $Separator + $ItemHeight
 $ComputerListItemPosition = $ScriptItemPosition + $Separator + $ItemHeight
-$ListBoxPosition = $ComputerListItemPosition + $Separator + $ItemHeight
-$ProgressBarPosition = $ListBoxPosition + $Separator + $ListBoxHeight
+$ListViewPosition = $ComputerListItemPosition + $Separator + $ItemHeight
+$ProgressBarPosition = $ListViewPosition + $Separator + $ListViewHeight
 $ButtonPosition = $ProgressBarPosition + $MarginSize + $ProgressBarHeight
 $ButtonWidth = ($ItemWidth - ($MarginSize * 2)) / 3
 
@@ -42,13 +40,14 @@ $MainForm.MaximizeBox = $false
 $MainForm.ShowIcon = $false
 $MainForm.BackColor = $FormBackgroundColor
 $MainForm.ForeColor = $FormForegroundColor
+$MainForm.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
+$MainForm.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
 
 $UsingLabel = New-Object system.Windows.Forms.Label
 $UsingLabel.Text = "  Using"
 $UsingLabel.Width = $LabelWidth
 $UsingLabel.Height = $ItemHeight
 $UsingLabel.Location = New-Object System.Drawing.Point($MarginSize, $UsingItemPosition)
-$UsingLabel.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $UsingLabel.TextAlign = "MiddleLeft"
 $UsingLabel.BackColor = $ItemBackgroundColor
 $MainForm.Controls.Add($UsingLabel)
@@ -57,7 +56,6 @@ $UsingComboBox = New-Object system.Windows.Forms.ComboBox
 $UsingComboBox.Width = $BoxWidth
 $UsingComboBox.Height = $ItemHeight
 $UsingComboBox.Location = New-Object System.Drawing.Point($BoxPosition, $UsingItemPosition)
-$UsingComboBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $UsingComboBox.AutoCompleteMode = 'SuggestAppend'
 $UsingComboBox.AutoCompleteSource = 'ListItems'
 $MainForm.Controls.Add($UsingComboBox)
@@ -82,7 +80,6 @@ $RunLabel.Text = "  Run"
 $RunLabel.Width = $LabelWidth
 $RunLabel.Height = $ItemHeight
 $RunLabel.Location = New-Object System.Drawing.Point($MarginSize, $RunItemPosition)
-$RunLabel.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $RunLabel.TextAlign = "MiddleLeft"
 $RunLabel.BackColor = $ItemBackgroundColor
 $MainForm.Controls.Add($RunLabel)
@@ -91,7 +88,6 @@ $RunComboBox = New-Object system.Windows.Forms.ComboBox
 $RunComboBox.Width = $BoxWidth
 $RunComboBox.Height = $ItemHeight
 $RunComboBox.Location = New-Object System.Drawing.Point($BoxPosition, $RunItemPosition)
-$RunComboBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $RunComboBox.AutoCompleteMode = 'SuggestAppend'
 $RunComboBox.AutoCompleteSource = 'ListItems'
 $MainForm.Controls.Add($RunComboBox)
@@ -115,7 +111,6 @@ $ScriptLabel.Text = "  Script"
 $ScriptLabel.Width = $LabelWidth
 $ScriptLabel.Height = $ItemHeight
 $ScriptLabel.Location = New-Object System.Drawing.Point($MarginSize, $ScriptItemPosition)
-$ScriptLabel.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $ScriptLabel.TextAlign = "MiddleLeft"
 $ScriptLabel.BackColor = $ItemBackgroundColor
 $MainForm.Controls.Add($ScriptLabel)
@@ -126,7 +121,6 @@ $ScriptTextBox.ReadOnly = $true
 $ScriptTextBox.Width = $BoxWidth
 $ScriptTextBox.Height = $ItemHeight
 $ScriptTextBox.Location = New-Object System.Drawing.Point($BoxPosition, $ScriptItemPosition)
-$ScriptTextBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $MainForm.Controls.Add($ScriptTextBox)
 
 $ScriptTextBox.Add_Click({
@@ -148,7 +142,6 @@ $ComputerListLabel.Text = "  Computer List"
 $ComputerListLabel.Width = $LabelWidth
 $ComputerListLabel.Height = $ItemHeight
 $ComputerListLabel.Location = New-Object System.Drawing.Point($MarginSize, $ComputerListItemPosition)
-$ComputerListLabel.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $ComputerListLabel.TextAlign = "MiddleLeft"
 $ComputerListLabel.BackColor = $ItemBackgroundColor
 $MainForm.Controls.Add($ComputerListLabel)
@@ -159,7 +152,6 @@ $ComputerListTextBox.ReadOnly = $true
 $ComputerListTextBox.Width = $BoxWidth
 $ComputerListTextBox.Height = $ItemHeight
 $ComputerListTextBox.Location = New-Object System.Drawing.Point($BoxPosition, $ComputerListItemPosition)
-$ComputerListTextBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $MainForm.Controls.Add($ComputerListTextBox)
 
 $ComputerListTextBox.Add_Click({
@@ -173,21 +165,20 @@ $ComputerListTextBox.Add_Click({
         $Item = New-Object system.Windows.Forms.ListViewItem($Computer)
         $Item.SubItems.add("Unknown")
         $Item.SubItems.add("Action Not Executed")
-        $ListBox.Items.Add($Item)
+        $ListView.Items.Add($Item)
     }
 })
 
-$ListBox = New-Object System.Windows.Forms.ListView
-$ListBox.View = 'Details'
-$ListBox.Width = $ItemWidth
-$ListBox.Height = $ListBoxHeight
-$ListBox.Location = New-Object System.Drawing.Point($MarginSize, $ListBoxPosition)
-$ListBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 11)
-$MainForm.Controls.Add($ListBox)
+$ListView = New-Object System.Windows.Forms.ListView
+$ListView.View = 'Details'
+$ListView.Width = $ItemWidth
+$ListView.Height = $ListViewHeight
+$ListView.Location = New-Object System.Drawing.Point($MarginSize, $ListViewPosition)
+$MainForm.Controls.Add($ListView)
 
-$ListBox.Columns.Add("Computer", ($ItemWidth / 3))
-$ListBox.Columns.Add("Online Status", ($ItemWidth / 3))
-$ListBox.Columns.Add("Execution Status", ($ItemWidth / 3))
+$ListView.Columns.Add("Computer", ($ItemWidth / 3))
+$ListView.Columns.Add("Online Status", ($ItemWidth / 3))
+$ListView.Columns.Add("Execution Status", ($ItemWidth / 3))
 
 $ProgressBar = New-Object System.Windows.Forms.ProgressBar
 $ProgressBar.Location = New-Object System.Drawing.Point($MarginSize, $ProgressBarPosition)
@@ -202,12 +193,11 @@ $TestConnectionButton.Text = "Test Connection"
 $TestConnectionButton.Width = $ButtonWidth
 $TestConnectionButton.Height = $ButtonHeight
 $TestConnectionButton.Location = New-Object System.Drawing.Point($MarginSize, $ButtonPosition)
-$TestConnectionButton.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $TestConnectionButton.BackColor = $ItemBackgroundColor
 $MainForm.controls.Add($TestConnectionButton)
 
 $TestConnectionButton.Add_Click({
-    foreach ($Item in $ListBox.Items) {
+    foreach ($Item in $ListView.Items) {
         $Item.Text("TOJETO")
     }
 })
@@ -218,7 +208,6 @@ $OpenScriptButton.Text = "Open Script"
 $OpenScriptButton.Width = $ButtonWidth
 $OpenScriptButton.Height = $ButtonHeight
 $OpenScriptButton.Location = New-Object System.Drawing.Point(($MarginSize * 2 + $ButtonWidth), $ButtonPosition)
-$OpenScriptButton.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $OpenScriptButton.BackColor = $ItemBackgroundColor
 $MainForm.controls.Add($OpenScriptButton)
 
@@ -236,7 +225,6 @@ $RunButton.Text = "Run"
 $RunButton.Width = $ButtonWidth
 $RunButton.Height = $ButtonHeight
 $RunButton.Location = New-Object System.Drawing.Point(($MarginSize * 3  + ($ButtonWidth * 2)), $ButtonPosition)
-$RunButton.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 $RunButton.BackColor = $ItemBackgroundColor
 $MainForm.controls.Add($RunButton)
 
