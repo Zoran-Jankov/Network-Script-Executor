@@ -7,7 +7,7 @@
 
 **Network Script Executor** is a PowerShell GUI application for runing scrptis nad other actions on network computers. It provides easier usage of PsExec tool when running Batch or PowerShell scripts on remote computers. It can also be used to run other system application on remote computers. It has simple and very easy to use graphical user interface.
 
-![Application Window](https://github.com/Zoran-Jankov/Network Script Executor/blob/main/Application%20Window.png)
+![Application Window](https://github.com/Zoran-Jankov/Network-Script-Executor/blob/main/Application%20Window.png)
 
 ## Requirements
 
