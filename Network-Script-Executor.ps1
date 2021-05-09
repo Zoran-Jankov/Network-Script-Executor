@@ -1,6 +1,6 @@
 #---------------------------------------------------------[Initialisations]--------------------------------------------------------
 
-$ApplicationTitle = "PsExec-GUI-Tool"
+$ApplicationTitle = "Network Script Executor"
 $ItemBackgroundColor = "#004589"
 $FormBackgroundColor = "#0080FF"
 $FormForegroundColor = "#D8EBFF"
