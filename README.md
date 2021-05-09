@@ -1,7 +1,9 @@
-# PsExec-GUI-Tool
+# Network Script Executor
 
 [![made-with-powershell](https://img.shields.io/badge/PowerShell-1f425f?logo=Powershell)](https://microsoft.com/PowerShell)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1e15e7e27c647b68418d3ba2a81fa7d)](https://www.codacy.com/gh/Zoran-Jankov/Network-Script-Executor/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Zoran-Jankov/Network-Script-Executor&amp;utm_campaign=Badge_Grade)
+[![CodeFactor](https://www.codefactor.io/repository/github/zoran-jankov/network-script-executor/badge)](https://www.codefactor.io/repository/github/zoran-jankov/network-script-executor)
 
 ## Description
 
