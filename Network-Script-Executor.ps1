@@ -191,7 +191,7 @@ $ProgressBar.Minimum = 0
 $ProgressBar.Maximum = 10000
 $MainForm.Controls.Add($ProgressBar)
 
-$TestConnectionButton = New-Object system.Windows.Forms.Button
+$TestConnectionButton = New-Object System.Windows.Forms.Button
 $TestConnectionButton.Enabled = $false
 $TestConnectionButton.Text = "Test Connection"
 $TestConnectionButton.Width = $ButtonWidth
@@ -202,11 +202,16 @@ $MainForm.controls.Add($TestConnectionButton)
 
 $TestConnectionButton.Add_Click({
     foreach ($Item in $ListView.Items) {
-        $Item.Text("TOJETO")
+        if (Test-Connection $Item[0].Text -Quiet -Count 1) {
+            $Item[1] = "Online"
+        }
+        else {
+            $Item[1] = "Offline"
+        }
     }
 })
 
-$OpenScriptButton = New-Object system.Windows.Forms.Button
+$OpenScriptButton = New-Object System.Windows.Forms.Button
 $OpenScriptButton.Enabled = $false
 $OpenScriptButton.Text = "Open Script"
 $OpenScriptButton.Width = $ButtonWidth
@@ -224,7 +229,7 @@ $OpenScriptButton.Add_Click({
     }
 })
 
-$RunButton = New-Object system.Windows.Forms.Button
+$RunButton = New-Object System.Windows.Forms.Button
 $RunButton.Text = "Run"
 $RunButton.Width = $ButtonWidth
 $RunButton.Height = $ButtonHeight
