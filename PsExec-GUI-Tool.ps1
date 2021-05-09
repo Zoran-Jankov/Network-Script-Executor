@@ -167,6 +167,9 @@ $ComputerListTextBox.Add_Click({
         $Item.SubItems.add("Action Not Executed")
         $ListView.Items.Add($Item)
     }
+    if ($Computers -ne $null) {
+        $TestConnectionButton.Enabled = $true
+    }
 })
 
 $ListView = New-Object System.Windows.Forms.ListView
@@ -189,6 +192,7 @@ $ProgressBar.Maximum = 10000
 $MainForm.Controls.Add($ProgressBar)
 
 $TestConnectionButton = New-Object system.Windows.Forms.Button
+$TestConnectionButton.Enabled = $false
 $TestConnectionButton.Text = "Test Connection"
 $TestConnectionButton.Width = $ButtonWidth
 $TestConnectionButton.Height = $ButtonHeight
