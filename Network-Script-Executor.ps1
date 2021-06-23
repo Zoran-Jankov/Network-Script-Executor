@@ -1,4 +1,7 @@
 #---------------------------------------------------------[Initialisations]--------------------------------------------------------
+$global:Computers = $null
+$global:Script = $null
+$global:ProgressBarIncrement = 0
 
 $ApplicationTitle = "Network Script Executor"
 $ItemBackgroundColor = "#004589"
@@ -11,19 +14,19 @@ $LabelWidth = 100
 $BoxWidth = 500
 $ItemWidth = $LabelWidth + $BoxWidth
 $ItemHeight = 25
-$ListViewHeight = 400
+$ListBoxHeight = 400
 $ProgressBarHeight = 25
 $ButtonHeight = 35
 
 $MainFormWidth = $ItemWidth + ($MarginSize * 2)
-$MainFormHeight = ($ItemHeight * 4) + $ListViewHeight + ($Separator * 5) + $ProgressBarHeight + $ButtonHeight + ($MarginSize * 3)
+$MainFormHeight = ($ItemHeight * 4) + $ListBoxHeight + ($Separator * 5) + $ProgressBarHeight + $ButtonHeight + ($MarginSize * 3)
 $BoxPosition = $MarginSize + $LabelWidth
 $UsingItemPosition = $MarginSize
 $RunItemPosition = $UsingItemPosition + $Separator + $ItemHeight
 $ScriptItemPosition = $RunItemPosition + $Separator + $ItemHeight
 $ComputerListItemPosition = $ScriptItemPosition + $Separator + $ItemHeight
-$ListViewPosition = $ComputerListItemPosition + $Separator + $ItemHeight
-$ProgressBarPosition = $ListViewPosition + $Separator + $ListViewHeight
+$ListBoxPosition = $ComputerListItemPosition + $Separator + $ItemHeight
+$ProgressBarPosition = $ListBoxPosition + $Separator + $ListBoxHeight
 $ButtonPosition = $ProgressBarPosition + $MarginSize + $ProgressBarHeight
 $ButtonWidth = ($ItemWidth - ($MarginSize * 2)) / 3
 
@@ -135,6 +138,7 @@ $ScriptTextBox.Add_Click({
     else {
         $OpenScriptButton.Enabled = $false
     }
+    $global:Script = Get-Content -Path ($ScriptTextBox.Text)
 })
 
 $ComputerListLabel = New-Object system.Windows.Forms.Label
@@ -160,28 +164,23 @@ $ComputerListTextBox.Add_Click({
     $OpenFileDialog.Filter = "Text Files (*.txt) | *.txt"
     $OpenFileDialog.ShowDialog() | Out-Null
     $ComputerListTextBox.Text = $OpenFileDialog.Filename
-    $Computers = Get-Content -Path $ComputerListTextBox.Text -Encoding UTF8
-    foreach ($Computer in $Computers) {
-        $Item = New-Object system.Windows.Forms.ListViewItem($Computer)
-        $Item.SubItems.add("Unknown")
-        $Item.SubItems.add("Action Not Executed")
-        $ListView.Items.Add($Item)
+    $global:Computers = Get-Content -Path ($ComputerListTextBox.Text) -Encoding UTF8
+    if ($global:Computers -ne $null) {
+        $RunButton.Enabled = $true
     }
-    if ($Computers -ne $null) {
-        $TestConnectionButton.Enabled = $true
+    else {
+        $RunButtonButton.Enabled = $false
     }
+    $global:ProgressBarIncrement = 10000 / $Computers.Count
 })
 
-$ListView = New-Object System.Windows.Forms.ListView
-$ListView.View = 'Details'
-$ListView.Width = $ItemWidth
-$ListView.Height = $ListViewHeight
-$ListView.Location = New-Object System.Drawing.Point($MarginSize, $ListViewPosition)
-$MainForm.Controls.Add($ListView)
-
-$ListView.Columns.Add("Computer", ($ItemWidth / 3))
-$ListView.Columns.Add("Online Status", ($ItemWidth / 3))
-$ListView.Columns.Add("Execution Status", ($ItemWidth / 3))
+$ListBox = New-Object System.Windows.Forms.ListBox
+$ListBox.Width = $ItemWidth
+$ListBox.Height = $ListBoxHeight
+$ListBox.Location = New-Object System.Drawing.Point($MarginSize, $ListBoxPosition)
+$ListBox.Text = "jkj"
+$ListBox.ForeColor = "#000000"
+$MainForm.Controls.Add($ListBox)
 
 $ProgressBar = New-Object System.Windows.Forms.ProgressBar
 $ProgressBar.Location = New-Object System.Drawing.Point($MarginSize, $ProgressBarPosition)
@@ -190,26 +189,6 @@ $ProgressBar.Style = "Continuous"
 $ProgressBar.Minimum = 0
 $ProgressBar.Maximum = 10000
 $MainForm.Controls.Add($ProgressBar)
-
-$TestConnectionButton = New-Object System.Windows.Forms.Button
-$TestConnectionButton.Enabled = $false
-$TestConnectionButton.Text = "Test Connection"
-$TestConnectionButton.Width = $ButtonWidth
-$TestConnectionButton.Height = $ButtonHeight
-$TestConnectionButton.Location = New-Object System.Drawing.Point($MarginSize, $ButtonPosition)
-$TestConnectionButton.BackColor = $ItemBackgroundColor
-$MainForm.controls.Add($TestConnectionButton)
-
-$TestConnectionButton.Add_Click({
-    foreach ($Item in $ListView.Items) {
-        if (Test-Connection $Item[0].Text -Quiet -Count 1) {
-            $Item[1] = "Online"
-        }
-        else {
-            $Item[1] = "Offline"
-        }
-    }
-})
 
 $OpenScriptButton = New-Object System.Windows.Forms.Button
 $OpenScriptButton.Enabled = $false
@@ -230,11 +209,34 @@ $OpenScriptButton.Add_Click({
 })
 
 $RunButton = New-Object System.Windows.Forms.Button
+$RunButton.Enabled = $true
 $RunButton.Text = "Run"
 $RunButton.Width = $ButtonWidth
 $RunButton.Height = $ButtonHeight
 $RunButton.Location = New-Object System.Drawing.Point(($MarginSize * 3  + ($ButtonWidth * 2)), $ButtonPosition)
 $RunButton.BackColor = $ItemBackgroundColor
 $MainForm.controls.Add($RunButton)
+
+$RunButton.Add_Click({
+    foreach ($Computer in $global:Computers) {
+        if (Test-Connection $Computer -Quiet -Count 1) {  
+            $ListBox.Text += "Executing script on $Computer computer . . .`r`n"
+            switch ($UsingComboBox.Text) {
+                "Windows PowerShell" {
+                    Invoke-Command -ComputerName $Computer -ScriptBlock $global:Script
+                }
+                Default {
+                    $TargetComputer = "\\$Computer"
+                    Start-Process -FilePath PsExec.exe -ArgumentList $TargetComputer $global:Script -h
+                }
+            }
+            $ListBox.Text += "Script executed on $Computer computer . . .`r`n"
+        }
+        else {
+            $ListBox.Text += "ERROR: $Computer computer is offline`r`n"
+        }
+        $ProgressBar.Value += $global:ProgressBarIncrement
+    }
+})
 
 [void]$MainForm.ShowDialog()
